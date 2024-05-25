@@ -6,14 +6,14 @@ namespace Script
     public class BytecodeInterpreter
     {
         private readonly List<Instruction> _instructions;
-        private readonly Stack<int> _stack;
+        private readonly Stack<object> _stack;
         private readonly Dictionary<int, Action<BytecodeInterpreter>> _systemFunctions;
         private int _instructionPointer;
 
         public BytecodeInterpreter()
         {
             _instructions = new List<Instruction>();
-            _stack = new Stack<int>();
+            _stack = new Stack<object>();
             _systemFunctions = new Dictionary<int, Action<BytecodeInterpreter>>();
             _instructionPointer = 0;
         }
@@ -42,7 +42,10 @@ namespace Script
         {
             switch (instruction.OpCode)
             {
-                case OpCode.PUSH:
+                case OpCode.PUSH_INT:
+                    _stack.Push(instruction.Operand);
+                    break;
+                case OpCode.PUSH_STRING:
                     _stack.Push(instruction.Operand);
                     break;
                 case OpCode.POP:
@@ -50,35 +53,42 @@ namespace Script
                     break;
                 case OpCode.ADD:
                     {
-                        int b = _stack.Pop();
-                        int a = _stack.Pop();
+                        int b = Convert.ToInt32(_stack.Pop());
+                        int a = Convert.ToInt32(_stack.Pop());
                         _stack.Push(a + b);
                         break;
                     }
                 case OpCode.SUB:
                     {
-                        int b = _stack.Pop();
-                        int a = _stack.Pop();
+                        int b = Convert.ToInt32(_stack.Pop());
+                        int a = Convert.ToInt32(_stack.Pop());
                         _stack.Push(a - b);
                         break;
                     }
                 case OpCode.MUL:
                     {
-                        int b = _stack.Pop();
-                        int a = _stack.Pop();
+                        int b = Convert.ToInt32(_stack.Pop());
+                        int a = Convert.ToInt32(_stack.Pop());
                         _stack.Push(a * b);
                         break;
                     }
                 case OpCode.DIV:
                     {
-                        int b = _stack.Pop();
-                        int a = _stack.Pop();
+                        int b = Convert.ToInt32(_stack.Pop());
+                        int a = Convert.ToInt32(_stack.Pop());
                         _stack.Push(a / b);
+                        break;
+                    }
+                case OpCode.CONCAT:
+                    {
+                        var b = _stack.Pop();
+                        var a = _stack.Pop();
+                        _stack.Push(a.ToString() + b.ToString());
                         break;
                     }
                 case OpCode.SYS_CALL:
                     {
-                        if (_systemFunctions.TryGetValue(instruction.Operand, out var function))
+                        if (_systemFunctions.TryGetValue(Convert.ToInt32(instruction.Operand), out var function))
                         {
                             function(this);
                         }
@@ -89,19 +99,19 @@ namespace Script
                         break;
                     }
                 case OpCode.JUMP:
-                    _instructionPointer = instruction.Operand;
+                    _instructionPointer = Convert.ToInt32(instruction.Operand);
                     return; // Skip the normal increment of the instruction pointer
                 case OpCode.JUMP_IF_ZERO:
-                    if (_stack.Pop() == 0)
+                    if (Convert.ToInt32(_stack.Pop()) == 0)
                     {
-                        _instructionPointer = instruction.Operand;
+                        _instructionPointer = Convert.ToInt32(instruction.Operand);
                         return;
                     }
                     break;
                 case OpCode.JUMP_IF_NEG:
-                    if (_stack.Pop() < 0)
+                    if (Convert.ToInt32(_stack.Pop()) < 0)
                     {
-                        _instructionPointer = instruction.Operand;
+                        _instructionPointer = Convert.ToInt32(instruction.Operand);
                         return;
                     }
                     break;
@@ -111,7 +121,7 @@ namespace Script
             _instructionPointer++;
         }
 
-        public int PeekStack()
+        public object PeekStack()
         {
             return _stack.Peek();
         }
