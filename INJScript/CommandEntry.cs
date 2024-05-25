@@ -6,37 +6,29 @@ public class CommandEntry
 {
     static void Main(string[] args)
     {
-        var interpreter = new BytecodeInterpreter();
+        INJ_state state = new INJ_state();
 
-        // Define some instructions
-        var instructions = new List<Instruction>
-        {
-            // push 1 & 2 onto the stack then add them together (1) with (2)
-            new Instruction(OpCode.PUSH_INT, 1),
-            new Instruction(OpCode.PUSH_INT, 2),
-            new Instruction(OpCode.ADD),
+        state.LoadLibraries(); // load in system functions
 
-            // push the string of " is the result" and combine the maths from earlier with it
-            new Instruction(OpCode.PUSH_STRING, " is the result"),
-            new Instruction(OpCode.CONCAT),
+        state.LoadBytecode(new Instruction[]
+            {
+                // push 1 & 2 onto the stack then add them together (1) with (2)
+                new Instruction(OpCode.PUSH_INT, 1),
+                new Instruction(OpCode.PUSH_INT, 2),
+                new Instruction(OpCode.ADD),
 
-            // print the current thing ontop of the stack (in this cast it would be "3 is the result"
-            new Instruction(OpCode.SYS_CALL, 0x10),
+                // push the string of " is the result" and combine the maths from earlier with it
+                new Instruction(OpCode.PUSH_STRING, " is the result"),
+                new Instruction(OpCode.CONCAT),
 
-            // restart loop from bytecode 0 (while loop)
-            new Instruction(OpCode.JUMP, 0)
-        };
+                // print the current thing ontop of the stack (in this cast it would be "3 is the result"
+                new Instruction(OpCode.SYS_CALL, 0x11),
 
-        // Load instructions into the interpreter
-        interpreter.LoadInstructions(instructions);
+                // restart loop from bytecode 0 (while loop)
+                new Instruction(OpCode.JUMP, 0)
+            });
 
-        // Register system functions
-        interpreter.RegisterSystemFunction(0x10, interp => {
-            Console.WriteLine(interp.PeekStack());
-        });
-
-        // Execute the bytecode
-        interpreter.Execute();
+        state.Run();
 
         Console.ReadKey();
     }
