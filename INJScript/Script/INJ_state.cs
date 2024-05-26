@@ -39,11 +39,11 @@ namespace Script
 
             { // CONSOLE
                 _state_interpreter.RegisterSystemFunction(0x10, interp => {
-                    Console.Write(interp.PeekStack()); // out << peek
+                    Console.Write(interp.PopStack()); // out << peek
                 });
 
                 _state_interpreter.RegisterSystemFunction(0x11, interp => {
-                    Console.WriteLine(interp.PeekStack()); // out << peek << "\r\n"
+                    Console.WriteLine(interp.PopStack()); // out << peek << "\r\n"
                 });
 
                 _state_interpreter.RegisterSystemFunction(0x12, interp => {
@@ -65,12 +65,74 @@ namespace Script
             _state_interpreter.Execute();
         }
 
+
+
         /// <summary>
         /// Cause State to shutdown (wipes when LoadBytecode is called)
         /// </summary>
         public void Reset()
         {
             _state_interpreter.Halt();
+        }
+
+        public void Optimize()
+        {
+            List<Instruction> instructions = _state_interpreter.GetInstructions();
+            List<Instruction> modified = instructions.ToArray().ToList();
+            Dictionary<string, int> labels = new Dictionary<string, int>();
+
+            // TODO: add a system to adjust pointers so I can easily remove bytes and adjust operand pointers
+
+            // lets change some things which commonly slow down the scripts for example debugging information like labels!
+
+            // lets extract the labels from our script first..
+            {
+                int ip = 0;
+                foreach (Instruction instruction in instructions)
+                {
+                    switch (instruction.OpCode)
+                    {
+                        case OpCode.DEF_LABEL:
+                            // for future processing
+                            labels.Add((string)instruction.Operand, ip+1); // skip the nop for the split second boost
+
+                            // replace with NOP
+                            //instructions.RemoveAt(ip);
+                            modified[ip] = new Instruction(OpCode.NOP);
+                            break; // continue
+                    }
+                    ip++;
+                }
+            }
+
+            // replace jump labels with their respectives
+            {
+                int ip = 0;
+                foreach (Instruction instruction in instructions)
+                {
+                    switch (instruction.OpCode)
+                    {
+                        case OpCode.JUMP_LABEL:
+                            modified[ip] = new Instruction(OpCode.JUMP, labels[(string)instruction.Operand]);
+                            break;
+                        case OpCode.JUMP_LABEL_IF:
+                            modified[ip] = new Instruction(OpCode.JUMP_IF, labels[(string)instruction.Operand]);
+                            break;
+                        case OpCode.JUMP_LABEL_IF_GE:
+                            modified[ip] = new Instruction(OpCode.JUMP_IF_GE, labels[(string)instruction.Operand]);
+                            break;
+                        case OpCode.JUMP_LABEL_IF_NEG:
+                            modified[ip] = new Instruction(OpCode.JUMP_IF_NEG, labels[(string)instruction.Operand]);
+                            break;
+                        case OpCode.JUMP_LABEL_IF_NGE:
+                            modified[ip] = new Instruction(OpCode.JUMP_IF_NGE, labels[(string)instruction.Operand]);
+                            break;
+                    }
+                    ip++;
+                }
+            }
+
+            LoadBytecode(modified.ToArray());
         }
 
         /// <summary>
@@ -91,7 +153,7 @@ namespace Script
         private void OnTick(Instruction instruction, int ip, Stack<object> stack)
         {
             Console.WriteLine($"{ip}: {instruction.OpCode.ToString()}, {instruction.Operand}, S: {string.Join(", ", stack.Reverse())}");
-            Console.ReadKey();
+            //Console.ReadKey();
         }
     }
 }

@@ -74,6 +74,11 @@ namespace Script
         {
             switch (instruction.OpCode)
             {
+                case OpCode.NOP: // meant to be blank
+                    break;
+                case OpCode.DEF_LABEL:
+                    // we reprocess labels before executing the instructions
+                    break;
                 case OpCode.PUSH:
                     _stack.Push(instruction.Operand);
                     break;
@@ -150,8 +155,9 @@ namespace Script
                     break;
                 case OpCode.JUMP_IF_GE:
                     {
-                        var value = Convert.ToInt32(_stack.Pop());
-                        var limit = Convert.ToInt32(_stack.Peek());
+                        var limit = Convert.ToInt32(_stack.Pop());
+                        var value = Convert.ToInt32(_stack.Peek());
+
                         if (value >= limit)
                         {
                             _instructionPointer = Convert.ToInt32(instruction.Operand);
@@ -161,9 +167,10 @@ namespace Script
                     break;
                 case OpCode.JUMP_IF_NGE:
                     {
-                        var value = Convert.ToInt32(_stack.Pop());
-                        var limit = Convert.ToInt32(_stack.Peek());
-                        if (value < limit)
+                        var limit = Convert.ToInt32(_stack.Pop());
+                        var value = Convert.ToInt32(_stack.Peek());
+
+                        if (value <= limit)
                         {
                             _instructionPointer = Convert.ToInt32(instruction.Operand);
                             return;
@@ -179,8 +186,8 @@ namespace Script
                     break;
                 case OpCode.JUMP_LABEL_IF:
                     {
-                        var value = Convert.ToInt32(_stack.Pop());
-                        var limit = Convert.ToInt32(_stack.Peek());
+                        var limit = Convert.ToInt32(_stack.Pop());
+                        var value = Convert.ToInt32(_stack.Peek());
 
                         if (value == limit)
                         {
@@ -206,7 +213,7 @@ namespace Script
                         var limit = Convert.ToInt32(_stack.Pop());
                         var value = Convert.ToInt32(_stack.Peek());
 
-                        if (value < limit)
+                        if (value <= limit)
                         {
                             _instructionPointer = _labels[(string)instruction.Operand];
                             return;
@@ -222,9 +229,9 @@ namespace Script
                     break;
                 case OpCode.JUMP_LABEL:
                     _instructionPointer = _labels[(string)instruction.Operand];
-                    return; // skil the normal increment of the IP (instruction pointer)
-                case OpCode.DEF_LABEL:
-                    // we reprocess labels before executing the instructions
+                    return; // skip the normal increment of the IP (instruction pointer)
+                case OpCode.INT3:
+                    Console.WriteLine("WARNING! script is executing instructions outside of code space!");
                     break;
                 default:
                     throw new InvalidOperationException($"Unknown opcode: {instruction.OpCode}");
@@ -237,6 +244,11 @@ namespace Script
             return _stack.Peek();
         }
 
+        public object PopStack()
+        {
+            return _stack.Pop();
+        }
+
         public void Push(object obj)
         {
             _stack.Push(obj);
@@ -245,6 +257,11 @@ namespace Script
         public void Attach(StateDebugger state_debugger)
         {
             _state_debugger = state_debugger;
+        }
+
+        public List<Instruction> GetInstructions()
+        {
+            return _instructions;
         }
     }
 }

@@ -1,6 +1,6 @@
 using Script;
+
 using System;
-using System.Collections.Generic;
 
 public class CommandEntry
 {
@@ -25,14 +25,17 @@ public class CommandEntry
                 new Instruction(OpCode.PUSH, " is the result"),
                 new Instruction(OpCode.CONCAT), // contact num & string
                 new Instruction(OpCode.SYS_CALL, 0x11), // print
-                new Instruction(OpCode.POP), // pop useless stuff
+                //new Instruction(OpCode.POP), // pop useless stuff
 
-                new Instruction(OpCode.PUSH, 10), // goal
+                new Instruction(OpCode.PUSH, 9), // goal
                 new Instruction(OpCode.JUMP_LABEL_IF_NGE, "START"), // loop if (not-greater-equal) goal
 
                 new Instruction(OpCode.PUSH, "Script has halted"),
                 new Instruction(OpCode.SYS_CALL, 0x11), // print message saying script ended
             });
+
+        // optimize for live running (does not work well with debugger as it removes labels)
+        state.Optimize();
 
         /*
         
