@@ -101,10 +101,11 @@
   <ItemGroup>
     <Compile Include="CommandEntry.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Script\BytecodeInterpreter.cs" />
+    <Compile Include="Script\InjScrptInterpret.cs" />
     <Compile Include="Script\INJ_state.cs" />
     <Compile Include="Script\Instruction.cs" />
     <Compile Include="Script\OpCode.cs" />
+    <Compile Include="Script\StateDebugger.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
