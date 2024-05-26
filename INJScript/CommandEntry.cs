@@ -10,8 +10,35 @@ public class CommandEntry
 
         state.LoadLibraries(); // load in system functions
 
-        state.AttachDebugger();
+        //state.AttachDebugger();
 
+        state.LoadBytecode(new Instruction[]
+            {
+                new Instruction(OpCode.JUMP_LABEL, "LABEL1"),
+
+                new Instruction(OpCode.DEF_LABEL, "LABEL2"),
+
+                new Instruction(OpCode.PUSH, "Statement 2"),
+                new Instruction(OpCode.SYS_CALL, 0x11), // print message
+
+                new Instruction(OpCode.JUMP_LABEL, "END"),
+
+                new Instruction(OpCode.DEF_LABEL, "LABEL1"),
+
+                new Instruction(OpCode.PUSH, "Statement 1"),
+                new Instruction(OpCode.SYS_CALL, 0x11), // print message
+                
+                new Instruction(OpCode.JUMP_LABEL, "LABEL2"),
+
+                new Instruction(OpCode.DEF_LABEL, "END"),
+            });
+
+        // optimize for live running (does not work well with debugger as it removes labels)
+        state.Optimize();
+
+        /*
+         
+         
         state.LoadBytecode(new Instruction[]
             {
                 new Instruction(OpCode.PUSH, 0),
@@ -33,9 +60,8 @@ public class CommandEntry
                 new Instruction(OpCode.PUSH, "Script has halted"),
                 new Instruction(OpCode.SYS_CALL, 0x11), // print message saying script ended
             });
-
-        // optimize for live running (does not work well with debugger as it removes labels)
-        state.Optimize();
+         
+         */
 
         /*
         

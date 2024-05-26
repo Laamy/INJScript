@@ -99,7 +99,7 @@ namespace Script
                             // replace with NOP
                             modified.Remove(instruction);
                             //modified[ip] = new Instruction(OpCode.NOP);
-                            ip -= 2;
+                            ip -= 1;
                             break;
                     }
                     ip++;
