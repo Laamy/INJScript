@@ -10,7 +10,7 @@ public class CommandEntry
 
         state.LoadLibraries(); // load in system functions
 
-        //state.AttachDebugger();
+        state.AttachDebugger();
 
         state.LoadBytecode(new Instruction[]
             {

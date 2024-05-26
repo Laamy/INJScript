@@ -85,7 +85,7 @@ namespace Script
 
             // lets change some things which commonly slow down the scripts for example debugging information like labels!
 
-            // lets extract the labels from our script first..
+            // first pre-processing
             {
                 int ip = 0;
                 foreach (Instruction instruction in instructions)
@@ -94,18 +94,21 @@ namespace Script
                     {
                         case OpCode.DEF_LABEL:
                             // for future processing
-                            labels.Add((string)instruction.Operand, ip+1); // skip the nop for the split second boost
+                            labels.Add((string)instruction.Operand, ip); // skip the nop for the split second boost
 
                             // replace with NOP
-                            //instructions.RemoveAt(ip);
-                            modified[ip] = new Instruction(OpCode.NOP);
-                            break; // continue
+                            modified.Remove(instruction);
+                            //modified[ip] = new Instruction(OpCode.NOP);
+                            ip -= 2;
+                            break;
                     }
                     ip++;
                 }
             }
 
-            // replace jump labels with their respectives
+            instructions = modified.ToArray().ToList();
+
+            // second pre-processing
             {
                 int ip = 0;
                 foreach (Instruction instruction in instructions)
@@ -153,7 +156,7 @@ namespace Script
         private void OnTick(Instruction instruction, int ip, Stack<object> stack)
         {
             Console.WriteLine($"{ip}: {instruction.OpCode.ToString()}, {instruction.Operand}, S: {string.Join(", ", stack.Reverse())}");
-            //Console.ReadKey();
+            Console.ReadKey();
         }
     }
 }
