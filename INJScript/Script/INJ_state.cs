@@ -54,6 +54,11 @@ namespace Script
                     char key = Console.ReadKey().KeyChar; // read key in console
                     _state_interpreter.Push(key); // push key onto stack
                 });
+
+                _state_interpreter.RegisterSystemFunction(0x14, interp => {
+                    string key = Console.ReadLine(); // read line in console
+                    _state_interpreter.Push(key); // push line onto stack
+                });
             }
         }
 
@@ -64,8 +69,6 @@ namespace Script
         {
             _state_interpreter.Execute();
         }
-
-
 
         /// <summary>
         /// Cause State to shutdown (wipes when LoadBytecode is called)
